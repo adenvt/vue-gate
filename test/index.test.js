@@ -32,6 +32,10 @@ const GlobalPolicy = {
   isActiveAdmin () {
     return this.isAdmin() && this.isActive()
   },
+  isCanChain () {
+    return this.isActiveAdmin()
+  },
+  expose: ['isActive', 'isCanChain'],
 }
 
 const PostPolicy = {
@@ -53,6 +57,15 @@ const PostPolicy = {
   ruleD () {
     return this.isAdmin()
   },
+  ruleE () {
+    return this.callMe()
+  },
+  ruleF () {
+    return this.isActive()
+  },
+  ruleG () {
+    return this.isAdmin() && this.isCanChain()
+  },
 }
 
 const gate = new Gate({
@@ -61,43 +74,69 @@ const gate = new Gate({
     post  : PostPolicy,
     global: GlobalPolicy,
   },
-  alias: { isAdmin: 'global->isActiveAdmin' },
+  alias: {
+    isAdmin: 'global->isActiveAdmin',
+    callMe (auth) {
+      return auth.id === 1 && this.policy('global', 'isAdmin')
+    },
+  },
 })
 
-test('can() / allow() should true when conditions meet', () => {
-  expect(gate.can('update', 'post', posts[0])).toBe(true)
-  expect(gate.allow('update', 'post', posts[0])).toBe(true)
+describe('Aggregate function', () => {
+  test('can() / allow() should true when conditions meet', () => {
+    expect(gate.can('update', 'post', posts[0])).toBe(true)
+    expect(gate.allow('update', 'post', posts[0])).toBe(true)
+  })
+
+  test('can() / allow() should false when conditions not meet', () => {
+    expect(gate.can('update', 'post', posts[1])).toBe(false)
+    expect(gate.allow('update', 'post', posts[1])).toBe(false)
+  })
+
+  test('cannot() / deny() should false when conditions meet', () => {
+    expect(gate.cannot('update', 'post', posts[0])).toBe(false)
+    expect(gate.deny('update', 'post', posts[0])).toBe(false)
+  })
+
+  test('cannot() / deny() should true when conditions not meet', () => {
+    expect(gate.cannot('update', 'post', posts[1])).toBe(true)
+    expect(gate.deny('update', 'post', posts[1])).toBe(true)
+  })
 })
 
-test('can() / allow() should false when conditions not meet', () => {
-  expect(gate.can('update', 'post', posts[1])).toBe(false)
-  expect(gate.allow('update', 'post', posts[1])).toBe(false)
+describe('Call another action', () => {
+  test('call another action in same policy', () => {
+    expect(gate.policy('post', 'remove', posts[0])).toBe(true)
+    expect(gate.policy('post', 'ruleB')).toBe(true)
+  })
+
+  test('call another action in different policy', () => {
+    expect(gate.policy('post', 'ruleC')).toBe(true)
+  })
 })
 
-test('cannot() / deny() should false when conditions meet', () => {
-  expect(gate.cannot('update', 'post', posts[0])).toBe(false)
-  expect(gate.deny('update', 'post', posts[0])).toBe(false)
+describe('Alias action', () => {
+  test('call alias action', () => {
+    expect(gate.policy('post', 'ruleD')).toBe(true)
+  })
+
+  test('call alias action (closure)', () => {
+    expect(gate.policy('post', 'ruleE')).toBe(true)
+  })
+
+  test('call expose action', () => {
+    expect(gate.policy('post', 'ruleF')).toBe(true)
+    expect(gate.policy('post', 'ruleG')).toBe(true)
+  })
 })
 
-test('cannot() / deny() should true when conditions not meet', () => {
-  expect(gate.cannot('update', 'post', posts[1])).toBe(true)
-  expect(gate.deny('update', 'post', posts[1])).toBe(true)
-})
+describe('Error handling', () => {
+  test('call not exist policy & action', () => {
+    expect(() => gate.policy('noExist', 'noExistRule')).toThrow(`[Vue Gate] Cannot find policy 'noExist'`)
+    expect(() => gate.policy('post', 'noExistRule')).toThrow(`[Vue Gate] Cannot find action 'noExistRule' in 'post'`)
+  })
 
-test('call another function in same policy', () => {
-  expect(gate.policy('post', 'remove', posts[0])).toBe(true)
-  expect(gate.policy('post', 'ruleB')).toBe(true)
-})
-
-test('call another function in different policy', () => {
-  expect(gate.policy('post', 'ruleC')).toBe(true)
-})
-
-test('call alias function', () => {
-  expect(gate.policy('post', 'ruleD')).toBe(true)
-})
-
-test('call not exist policy / rule should thrown error', () => {
-  expect(() => gate.policy('noExist', 'noExistRule')).toThrow(`[Vue Gate] Cannot find policy 'noExist'`)
-  expect(() => gate.policy('post', 'noExistRule')).toThrow(`[Vue Gate] Cannot find action 'noExistRule' in 'post'`)
+  test("call action 'expose'", () => {
+    expect(() => gate.policy('post', 'expose')).toThrow(`[Vue Gate] Cannot find action 'expose' in 'post'`)
+  })
 })

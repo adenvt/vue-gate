@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Vue Authorization plugin",
   "main": "dist/vue-gate.js",
+  "module": "dist/vue-gate.js",
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack-dev-server --open",
     "dev": "cross-env NODE_ENV=development webpack --colors --progress --hide-modules",
@@ -16,12 +17,17 @@
     "authorize",
     "authorization"
   ],
-  "author": "adenvt@gmail.com",
+  "author": {
+    "name": "Ade Novid",
+    "email": "adenvt@gmail.com"
+  },
+  "homepage": "https://github.com/adenvt/vue-gate",
+  "repository": "https://github.com/adenvt/vue-gate",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "babel-loader": "^8.0.0",
+    "babel-loader": "^8.0.1",
     "cross-env": "^5.2.0",
     "eslint": "^5.5.0",
     "eslint-config-adenvt": "^1.0.0",

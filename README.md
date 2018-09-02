@@ -1,6 +1,8 @@
 # vue-gate
 > Simple Vue authorization plugin
 
+[![npm version](https://badge.fury.io/js/vue-gate.svg)](https://badge.fury.io/js/vue-gate)
+
 ## Getting Started
 
 ```bash
@@ -14,6 +16,7 @@ import VueGate from 'vue-gate'
 
 Vue.use(VueGate)
 
+// Define your credibility
 const auth = {
   id    : 1,
   name  : 'Lorem Ipsum',
@@ -21,6 +24,7 @@ const auth = {
   active: true,
 }
 
+// Write policy
 const PostPolicy = {
   edit (auth, post) {
     return auth.id === post.user_id
@@ -32,6 +36,7 @@ const PostPolicy = {
   }
 }
 
+// Registering auth and policies
 const gate = new VueGate({
   auth: auth,
   policies: {
@@ -39,6 +44,7 @@ const gate = new VueGate({
   }
 })
 
+// Registering gate to Vue
 new Vue({
   el: '#app',
   gate: gate,
