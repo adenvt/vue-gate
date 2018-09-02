@@ -38,6 +38,9 @@ const PostPolicy = {
   update (auth, post) {
     return auth.id === post.userId
   },
+  remove (auth, post) {
+    return this.update(post)
+  },
   ruleA (auth) {
     return auth.id === 1
   },
@@ -62,35 +65,36 @@ const gate = new Gate({
 })
 
 test('can() / allow() should true when conditions meet', () => {
-  expect(gate.can('update', 'post', posts[0])).toBeTruthy()
-  expect(gate.allow('update', 'post', posts[0])).toBeTruthy()
+  expect(gate.can('update', 'post', posts[0])).toBe(true)
+  expect(gate.allow('update', 'post', posts[0])).toBe(true)
 })
 
 test('can() / allow() should false when conditions not meet', () => {
-  expect(gate.can('update', 'post', posts[1])).toBeFalsy()
-  expect(gate.allow('update', 'post', posts[1])).toBeFalsy()
+  expect(gate.can('update', 'post', posts[1])).toBe(false)
+  expect(gate.allow('update', 'post', posts[1])).toBe(false)
 })
 
 test('cannot() / deny() should false when conditions meet', () => {
-  expect(gate.cannot('update', 'post', posts[0])).toBeFalsy()
-  expect(gate.deny('update', 'post', posts[0])).toBeFalsy()
+  expect(gate.cannot('update', 'post', posts[0])).toBe(false)
+  expect(gate.deny('update', 'post', posts[0])).toBe(false)
 })
 
 test('cannot() / deny() should true when conditions not meet', () => {
-  expect(gate.cannot('update', 'post', posts[1])).toBeTruthy()
-  expect(gate.deny('update', 'post', posts[1])).toBeTruthy()
+  expect(gate.cannot('update', 'post', posts[1])).toBe(true)
+  expect(gate.deny('update', 'post', posts[1])).toBe(true)
 })
 
 test('call another function in same policy', () => {
-  expect(gate.policy('post', 'ruleB')).toBeTruthy()
+  expect(gate.policy('post', 'remove', posts[0])).toBe(true)
+  expect(gate.policy('post', 'ruleB')).toBe(true)
 })
 
 test('call another function in different policy', () => {
-  expect(gate.policy('post', 'ruleC')).toBeTruthy()
+  expect(gate.policy('post', 'ruleC')).toBe(true)
 })
 
 test('call alias function', () => {
-  expect(gate.policy('post', 'ruleD')).toBeTruthy()
+  expect(gate.policy('post', 'ruleD')).toBe(true)
 })
 
 test('call not exist policy / rule should thrown error', () => {

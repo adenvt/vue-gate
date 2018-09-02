@@ -8,12 +8,13 @@
     "dev": "cross-env NODE_ENV=development webpack --colors --progress --hide-modules",
     "prod": "cross-env NODE_ENV=production webpack --colors --progress --hide-modules",
     "test": "jest",
-    "lint": "eslint ./*.js src/",
-    "fix": "eslint ./*.js src/ --fix"
+    "lint": "eslint ./*.js src/ test/",
+    "fix": "eslint ./*.js src/ test/ --fix"
   },
   "keywords": [
     "vue",
-    "authorize"
+    "authorize",
+    "authorization"
   ],
   "author": "adenvt@gmail.com",
   "license": "MIT",
