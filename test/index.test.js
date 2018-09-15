@@ -39,6 +39,9 @@ const GlobalPolicy = {
 }
 
 const PostPolicy = {
+  view (auth, rute) {
+    return this.isAdmin() && rute.name === 'settings'
+  },
   update (auth, post) {
     return auth.id === post.userId
   },
@@ -66,6 +69,35 @@ const PostPolicy = {
   ruleG () {
     return this.isAdmin() && this.isCanChain()
   },
+}
+
+// Dummy route
+const route = {
+  matched: [
+    {
+      path    : 'settings',
+      name    : 'settings',
+      redirect: '/settings/theme',
+      meta    : {
+        gate: {
+          type  : 'post',
+          action: 'view',
+        },
+      },
+    },
+    {
+      path: 'theme',
+      name: 'settings-theme',
+    },
+    {
+      path: 'update',
+      name: 'settings-update',
+    },
+    {
+      path: 'info',
+      name: 'settings-info',
+    },
+  ],
 }
 
 const gate = new Gate({
@@ -138,5 +170,11 @@ describe('Error handling', () => {
 
   test("call action 'expose'", () => {
     expect(() => gate.policy('post', 'expose')).toThrow(`[Vue Gate] Cannot find action 'expose' in 'post'`)
+  })
+})
+
+describe('Vue router handling', () => {
+  test('route guard', () => {
+    expect(gate.guard(route)).toBe(true)
   })
 })

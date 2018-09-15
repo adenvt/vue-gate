@@ -98,6 +98,27 @@ export default class Gate {
     return !this.policy(type, action, ...params)
   }
 
+  guard (to, ...params) {
+    return to.matched.reduce((status, rute) => {
+      if (rute.meta
+        && rute.meta.gate
+        && rute.meta.gate.type
+        && rute.meta.gate.action
+      ) {
+        return status
+          && this.policy(
+            rute.meta.gate.type,
+            rute.meta.gate.action,
+            rute,
+            to,
+            ...params,
+          )
+      }
+
+      return status && true
+    }, true)
+  }
+
   static install (Vue) {
     const isDef = v => v !== undefined
 

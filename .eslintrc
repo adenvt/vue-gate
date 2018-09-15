@@ -1,3 +1,6 @@
 {
-  "extends": "adenvt"
+  "extends": "adenvt",
+  "rules": {
+    "operator-linebreak": ["error", "before"]
+  }
 }
