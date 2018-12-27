@@ -48,6 +48,17 @@ export default class Gate {
     this.exposeAction()
   }
 
+  set auth (auth) {
+    this._auth = auth
+  }
+
+  get auth () {
+    if (typeof this._auth === 'function')
+      return this._auth()
+
+    return this._auth
+  }
+
   exposeAction () {
     for (const type in this.policies) {
       const expose = this.policies[type].expose
@@ -120,7 +131,7 @@ export default class Gate {
   }
 
   static install (Vue) {
-    const isDef = v => v !== undefined
+    const isDef = (v) => v !== undefined
 
     Vue.mixin({
       beforeCreate () {
