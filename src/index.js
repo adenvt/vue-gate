@@ -10,6 +10,9 @@ class GateProxy {
     const target = proxy.target
     const origin = Reflect.get(target, prop, receiver)
 
+    if (prop === 'expose')
+      throw new Error(`[Vue Gate] Cannot find action '${prop}' in '${proxy.type}'`)
+
     if (origin === undefined) {
       return (...args) => {
         const method = target.policies[proxy.type][prop]
@@ -21,6 +24,9 @@ class GateProxy {
 
         if (alias === undefined)
           throw new Error(`[Vue Gate] Cannot find action '${prop}' in '${target.type}'`)
+
+        if (typeof alias === 'function')
+          return alias.call(target, target.auth, ...args)
 
         const [type, action] = alias.split('->')
 
@@ -34,9 +40,39 @@ class GateProxy {
 
 export default class Gate {
   constructor (options) {
+    this.options  = options
     this.auth     = options.auth
     this.policies = options.policies
     this.alias    = options.alias || {}
+
+    this.exposeAction()
+  }
+
+  set auth (auth) {
+    this._auth = auth
+  }
+
+  get auth () {
+    if (typeof this._auth === 'function')
+      return this._auth()
+
+    return this._auth
+  }
+
+  exposeAction () {
+    for (const type in this.policies) {
+      const expose = this.policies[type].expose
+
+      if (expose !== undefined) {
+        for (const action of expose) {
+          Object.defineProperty(this.alias, action, {
+            get: () => {
+              return `${type}->${action}`
+            },
+          })
+        }
+      }
+    }
   }
 
   policy (type, action, ...params) {
@@ -44,6 +80,9 @@ export default class Gate {
 
     if (rule === undefined)
       throw new Error(`[Vue Gate] Cannot find policy '${type}'`)
+
+    if (action === 'expose')
+      throw new Error(`[Vue Gate] Cannot find action '${action}' in '${type}'`)
 
     const method = rule[action]
     if (method === undefined)
@@ -70,8 +109,29 @@ export default class Gate {
     return !this.policy(type, action, ...params)
   }
 
+  guard (to, ...params) {
+    return to.matched.reduce((status, rute) => {
+      if (rute.meta
+        && rute.meta.gate
+        && rute.meta.gate.type
+        && rute.meta.gate.action
+      ) {
+        return status
+          && this.policy(
+            rute.meta.gate.type,
+            rute.meta.gate.action,
+            rute,
+            to,
+            ...params,
+          )
+      }
+
+      return status && true
+    }, true)
+  }
+
   static install (Vue) {
-    const isDef = v => v !== undefined
+    const isDef = (v) => v !== undefined
 
     Vue.mixin({
       beforeCreate () {
