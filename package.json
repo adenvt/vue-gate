@@ -1,6 +1,6 @@
 {
   "name": "vue-gate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vue Authorization plugin",
   "main": "dist/vue-gate.js",
   "module": "dist/vue-gate.js",
