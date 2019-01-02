@@ -1,6 +1,6 @@
 /* eslint-env node, jest */
 
-const Gate = require('../dist/vue-gate')
+const Gate = require('../dist/vue-gate.common')
 
 const auth = {
   id    : 1,
