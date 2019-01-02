@@ -1,23 +1,12 @@
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const merge          = require('webpack-merge')
 const path           = require('path')
 const { name }       = require('./package.json')
 
 const isProd = process.env.NODE_ENV === 'production'
-const config = {
+const common = {
   entry : './src/index.js',
   mode  : process.env.NODE_ENV,
-  output: {
-    filename: `${name}.js`,
-    path    : path.resolve(__dirname, 'dist'),
-    library : {
-      root    : 'VueGate',
-      amd     : name,
-      commonjs: name,
-    },
-    libraryTarget    : 'umd',
-    libraryExport    : 'default',
-    sourceMapFilename: `${name}.map`,
-  },
   module: {
     rules: [
       {
@@ -25,7 +14,10 @@ const config = {
         exclude: /(node_modules|bower_components)/,
         use    : {
           loader : 'babel-loader',
-          options: { presets: ['@babel/preset-env'] },
+          options: {
+            presets: [['@babel/preset-env']],
+            plugins: [['add-module-exports', { addDefaultProperty: true }]],
+          },
         },
       },
     ],
@@ -33,12 +25,37 @@ const config = {
 }
 
 if (isProd)
-  Object.assign(config, { plugins: [new UglifyJsPlugin({ uglifyOptions: { output: { comments: false } } })] })
+  Object.assign(common, { plugins: [new UglifyJsPlugin({ uglifyOptions: { output: { comments: false } } })] })
 else {
-  Object.assign(config, {
+  Object.assign(common, {
     devtool  : 'inline-source-map',
     devServer: { contentBase: ['./dist', './dev'] },
   })
 }
 
-module.exports = config
+const umd = merge(common, {
+  output: {
+    filename         : `${name}.js`,
+    path             : path.resolve(__dirname, 'dist'),
+    libraryExport    : 'default',
+    libraryTarget    : 'umd',
+    sourceMapFilename: `${name}.map`,
+    library          : {
+      root    : 'VueGate',
+      commonjs: name,
+      amd     : name,
+    },
+  },
+})
+
+const commonjs = merge(common, {
+  output: {
+    filename         : `${name}.common.js`,
+    path             : path.resolve(__dirname, 'dist'),
+    libraryTarget    : 'commonjs2',
+    libraryExport    : 'default',
+    sourceMapFilename: `${name}.map`,
+  },
+})
+
+module.exports = [ umd, commonjs ]

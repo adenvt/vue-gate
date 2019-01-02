@@ -38,7 +38,7 @@ class GateProxy {
   }
 }
 
-export default class Gate {
+class Gate {
   constructor (options) {
     this.options  = options
     this.auth     = options.auth
@@ -162,3 +162,5 @@ export default class Gate {
     })
   }
 }
+
+export default Gate
