@@ -45,7 +45,7 @@ class Gate {
     this.policies = options.policies
     this.alias    = options.alias || {}
 
-    this.exposeAction()
+    this.init()
   }
 
   set auth (auth) {
@@ -59,7 +59,7 @@ class Gate {
     return this._auth
   }
 
-  exposeAction () {
+  init () {
     for (const type in this.policies) {
       const expose = this.policies[type].expose
 
@@ -72,6 +72,13 @@ class Gate {
           })
         }
       }
+    }
+
+    for (const name in this.alias) {
+      const fn = this.alias[name]
+
+      if (typeof fn === 'function')
+        this[name] = (...args) => fn.call(this, this.auth, ...args)
     }
   }
 
