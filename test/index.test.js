@@ -63,6 +63,9 @@ const PostPolicy = {
   ruleE () {
     return this.callMe()
   },
+  ruleE2 () {
+    return this.youCallMe()
+  },
   ruleF () {
     return this.isActive()
   },
@@ -111,6 +114,9 @@ const gate = new Gate({
     callMe (auth) {
       return auth.id === 1 && this.policy('global', 'isAdmin')
     },
+    youCallMe (auth) {
+      return this.callMe()
+    },
   },
 })
 
@@ -154,6 +160,7 @@ describe('Alias action', () => {
 
   test('call alias action (closure)', () => {
     expect(gate.policy('post', 'ruleE')).toBe(true)
+    expect(gate.policy('post', 'ruleE2')).toBe(true)
   })
 
   test('call expose action', () => {
